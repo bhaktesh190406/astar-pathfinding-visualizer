@@ -11,16 +11,13 @@ HEIGHT = ROWS * CELL_SIZE
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("A* Algorithm Visualizer")
+pygame.display.set_caption("A* Visualizer")
 
-# Grid initialization
 grid = np.zeros((ROWS, COLS), dtype=np.int32)
 
-# Start and End nodes
 start = (0, 0)
 end = (19, 19)
 
-# Load C library
 lib = ctypes.CDLL("./astar.dll")
 
 lib.astar.argtypes = [
@@ -56,6 +53,7 @@ def draw_grid():
 
 
 def run_astar():
+    draw_grid()
 
     path = np.zeros((400,2),dtype=np.int32)
 
@@ -69,17 +67,18 @@ def run_astar():
     )
 
     if count == -1:
-        print("No path found")
+        print("No path found ❌")
         return
 
     for i in range(count):
-
         x = path[i][0]
         y = path[i][1]
 
-        pygame.draw.rect(screen,(0,0,255),(y*CELL_SIZE,x*CELL_SIZE,CELL_SIZE,CELL_SIZE))
+        if (x,y) != start and (x,y) != end:
+            pygame.draw.rect(screen,(0,0,255),(y*CELL_SIZE,x*CELL_SIZE,CELL_SIZE,CELL_SIZE))
+
         pygame.display.update()
-        pygame.time.delay(60)
+        pygame.time.delay(40)
 
 
 def clear_grid():
@@ -98,19 +97,24 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        # Draw walls
+        # LEFT CLICK → add wall
         if pygame.mouse.get_pressed()[0]:
-
             mx,my = pygame.mouse.get_pos()
-
             r = my // CELL_SIZE
             c = mx // CELL_SIZE
 
-            if 0 <= r < ROWS and 0 <= c < COLS:
-                if (r,c) != start and (r,c) != end:
-                    grid[r][c] = 1
+            if (r,c) != start and (r,c) != end:
+                grid[r][c] = 1
 
-        # Keyboard controls
+        # RIGHT CLICK → remove wall
+        if pygame.mouse.get_pressed()[2]:
+            mx,my = pygame.mouse.get_pos()
+            r = my // CELL_SIZE
+            c = mx // CELL_SIZE
+
+            if (r,c) != start and (r,c) != end:
+                grid[r][c] = 0
+
         if event.type == pygame.KEYDOWN:
 
             if event.key == pygame.K_SPACE:
